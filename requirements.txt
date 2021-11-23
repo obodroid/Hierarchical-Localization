@@ -11,4 +11,5 @@ scikit-learn
 kornia
 pyyaml
 pyquaternion
+ipywidgets
 git+https://github.com/mihaidusmanu/pycolmap@fe5b30345d5de31f9376675c68f19348149426b0
