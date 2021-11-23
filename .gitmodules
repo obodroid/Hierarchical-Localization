@@ -11,6 +11,3 @@
 [submodule "third_party/r2d2"]
 	path = third_party/r2d2
 	url = https://github.com/naver/r2d2.git
-[submodule "OpenIBL"]
-	path = OpenIBL
-	url = https://github.com/yxgeee/OpenIBL
