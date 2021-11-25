@@ -5,7 +5,8 @@ from pathlib import Path
 #outputpath = Path('outputs/sfm5/SFMLocSTnightretq5')
 #outputname = "queries_with_intrinsics.txt"
 
-def query_intrinsics(img_path,db_intrinsics_file,output_path,output_name):
+
+def query_intrinsics(img_path, db_intrinsics_file, output_path, output_name):
     print('Creating lists of quries intrinsics...')
     file_list = os.listdir(img_path)
     with open(db_intrinsics_file) as intfile:
@@ -15,6 +16,7 @@ def query_intrinsics(img_path,db_intrinsics_file,output_path,output_name):
         for i in file_list:
             f.write(i + ' ' + intrins_param + '\n')
         f.close()
-        print('a file has been saved in ' + "'" + str(output_path) + '/' + str(output_name) + "'.")
+        print('a file has been saved in ' + "'" +
+              str(output_path) + '/' + str(output_name) + "'.")
 
-#query_intrinsics(path_query,dbinfile,outputpath,outputname)
+# query_intrinsics(path_query,dbinfile,outputpath,outputname)
