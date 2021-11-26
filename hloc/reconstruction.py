@@ -1,3 +1,4 @@
+import os
 import argparse
 import logging
 from pathlib import Path
@@ -32,10 +33,16 @@ def import_images(colmap_path, sfm_dir, image_dir, database_path,
 
     # We need to create dummy features for COLMAP to import images with EXIF
     dummy_dir = sfm_dir / 'dummy_features'
-    dummy_dir.mkdir()
-    for i in images:
-        with open(str(dummy_dir / (i.name + '.txt')), 'w') as f:
-            f.write('0 128')
+    dummy_dir.mkdir(exist_ok=True)
+    for root, dirs, files in os.walk(image_dir):
+        rel_dir = dummy_dir / os.path.relpath(root, image_dir)
+        # print(f'rel dir: {rel_dir}')
+        rel_dir.mkdir(exist_ok=True)
+        for filename in files:
+            dummy_file = rel_dir / (filename + '.txt')
+            # print(f'dummy file: {dummy_file}')
+            with open(str(dummy_file), 'w') as f:
+                f.write('0 128')
 
     cmd = [
         str(colmap_path), 'feature_importer',
@@ -136,16 +143,16 @@ def main(sfm_dir, image_dir, pairs, features, matches,
     import_images(
         colmap_path, sfm_dir, image_dir, database, single_camera, verbose)
     image_ids = get_image_ids(database)
-    import_features(image_ids, database, features)
-    import_matches(image_ids, database, pairs, matches,
-                   min_match_score, skip_geometric_verification)
-    if not skip_geometric_verification:
-        geometric_verification(colmap_path, database, pairs, verbose)
-    stats = run_reconstruction(
-        colmap_path, sfm_dir, database, image_dir, min_num_matches, verbose)
-    if stats is not None:
-        stats['num_input_images'] = len(image_ids)
-        logging.info('Reconstruction statistics:\n%s', pprint.pformat(stats))
+    # import_features(image_ids, database, features)
+    # import_matches(image_ids, database, pairs, matches,
+    #                min_match_score, skip_geometric_verification)
+    # if not skip_geometric_verification:
+    #     geometric_verification(colmap_path, database, pairs, verbose)
+    # stats = run_reconstruction(
+    #     colmap_path, sfm_dir, database, image_dir, min_num_matches, verbose)
+    # if stats is not None:
+    #     stats['num_input_images'] = len(image_ids)
+    #     logging.info('Reconstruction statistics:\n%s', pprint.pformat(stats))
 
 
 if __name__ == '__main__':
