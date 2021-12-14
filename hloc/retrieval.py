@@ -38,13 +38,13 @@ confs = {
     }
 }
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+model = Retriever().eval().to(device)
+
 @torch.no_grad()
 def main(conf, image_dir, export_dir, output_name, as_half=False):
     logging.info('Extracting global descriptors with configuration:'
                  f'\n{pprint.pformat(conf)}')
-
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    model = Retriever().eval().to(device)
 
     loader = ImageDataset(image_dir, conf['preprocessing'])
     loader = torch.utils.data.DataLoader(loader, num_workers=1)
