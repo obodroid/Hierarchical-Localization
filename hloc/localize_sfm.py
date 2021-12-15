@@ -125,13 +125,13 @@ def main(reference_sfm, queries, retrieval, features, matches, results,
     logging.info('Starting localization...')
     for qname, qinfo in tqdm(queries):
         if qname not in retrieval_dict:
-            logging.warning(f'No images retrieved for query image {qname}. Skipping...')
+            logging.debug(f'No images retrieved for query image {qname}. Skipping...')
             continue
         db_names = retrieval_dict[qname]
         db_ids = []
         for n in db_names:
             if n not in db_name_to_id:
-                logging.warning(f'Image {n} was retrieved but not in database')
+                logging.debug(f'Image {n} was retrieved but not in database')
                 continue
             db_ids.append(db_name_to_id[n])
 

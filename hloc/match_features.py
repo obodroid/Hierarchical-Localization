@@ -130,7 +130,18 @@ def match_from_paths(conf: Dict, pairs_path: Path, match_path: Path,
         models[conf['model']['name']] = model
 
     match_path.parent.mkdir(exist_ok=True, parents=True)
+    
+    logging.info(f'Start delete query matching: {match_path}')
+    if match_path.exists():
+        with h5py.File(str(match_path), 'a') as fd:
+            for key in fd.keys():
+                if not key.startswith('db'):
+                    del fd[key]
+
+    logging.info(f'Start skip pairs: {match_path}')
     skip_pairs = set(list_h5_names(match_path) if match_path.exists() else ())
+
+    logging.info('Finished setup model for matching')
 
     for (name0, name1) in tqdm(pairs, smoothing=.1):
         pair = names_to_pair(name0, name1)
@@ -138,6 +149,7 @@ def match_from_paths(conf: Dict, pairs_path: Path, match_path: Path,
         if pair in skip_pairs or names_to_pair(name0, name1) in skip_pairs:
             continue
 
+        logging.info(f'Matching pair: {pair}')
         data = {}
         with h5py.File(str(feature_path_q), 'r') as fd:
             grp = fd[name0]

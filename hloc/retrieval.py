@@ -53,6 +53,11 @@ def main(conf, image_dir, export_dir, output_name, as_half=False):
     descriptor_path.parent.mkdir(exist_ok=True, parents=True)
     descriptor_file = h5py.File(str(descriptor_path), 'a')
 
+    logging.info(f'Start delete query descriptor: {descriptor_path}')
+    for key in descriptor_file.keys():
+        if not key.startswith('db'):
+            del descriptor_file[key]
+
     for data in tqdm(loader):
         if data['name'][0] in descriptor_file:
             continue
