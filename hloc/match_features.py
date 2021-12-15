@@ -85,6 +85,8 @@ def main(conf: Dict, pairs: Path, features: Union[Path, str],
 
     return matches
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+models = {}
 
 @torch.no_grad()
 def match_from_paths(conf: Dict, pairs_path: Path, match_path: Path,
@@ -120,9 +122,12 @@ def match_from_paths(conf: Dict, pairs_path: Path, match_path: Path,
         with open(pairs_path, 'w') as f:
             f.write('\n'.join(' '.join((n1, n2)) for n1, n2 in pairs))
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    Model = dynamic_load(matchers, conf['model']['name'])
-    model = Model(conf['model']).eval().to(device)
+    if conf['model']['name'] in models:
+        model = models[conf['model']['name']]
+    else:
+        Model = dynamic_load(matchers, conf['model']['name'])
+        model = Model(conf['model']).eval().to(device)
+        models[conf['model']['name']] = model
 
     match_path.parent.mkdir(exist_ok=True, parents=True)
     skip_pairs = set(list_h5_names(match_path) if match_path.exists() else ())
