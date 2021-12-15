@@ -47,7 +47,7 @@ def main(conf, image_dir, export_dir, output_name, as_half=False):
                  f'\n{pprint.pformat(conf)}')
 
     loader = ImageDataset(image_dir, conf['preprocessing'])
-    loader = torch.utils.data.DataLoader(loader, num_workers=1)
+    loader = torch.utils.data.DataLoader(loader, num_workers=0)
 
     descriptor_path = Path(export_dir, output_name)
     descriptor_path.parent.mkdir(exist_ok=True, parents=True)
