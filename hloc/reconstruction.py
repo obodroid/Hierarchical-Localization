@@ -24,7 +24,7 @@ def create_empty_db(database_path):
     db.close()
 
 
-def import_images(colmap_path, sfm_dir, image_dir, database_path,
+def import_images(colmap_path, sfm_dir, image_dir, database_path, exclude_folder,
                   single_camera=False, verbose=False):
     logging.info('Importing images into the database...')
     images = list(image_dir.iterdir())
@@ -35,12 +35,12 @@ def import_images(colmap_path, sfm_dir, image_dir, database_path,
     dummy_dir = sfm_dir / 'dummy_features'
     dummy_dir.mkdir(exist_ok=True)
     for root, dirs, files in os.walk(image_dir):
+        if exclude_folder in dirs:
+            dirs.remove(str(exclude_folder)) 
         rel_dir = dummy_dir / os.path.relpath(root, image_dir)
-        # print(f'rel dir: {rel_dir}')
         rel_dir.mkdir(exist_ok=True)
         for filename in files:
             dummy_file = rel_dir / (filename + '.txt')
-            # print(f'dummy file: {dummy_file}')
             with open(str(dummy_file), 'w') as f:
                 f.write('0 128')
 
@@ -127,7 +127,7 @@ def run_reconstruction(colmap_path, sfm_dir, database_path, image_dir,
     return stats
 
 
-def main(sfm_dir, image_dir, pairs, features, matches,
+def main(sfm_dir, image_dir, pairs, features, matches, exclude_folder,
          colmap_path='colmap', single_camera=False,
          skip_geometric_verification=False,
          min_match_score=None, min_num_matches=None, verbose=False):
@@ -141,7 +141,7 @@ def main(sfm_dir, image_dir, pairs, features, matches,
 
     create_empty_db(database)
     import_images(
-        colmap_path, sfm_dir, image_dir, database, single_camera, verbose)
+        colmap_path, sfm_dir, image_dir, database, exclude_folder, single_camera, verbose)
     image_ids = get_image_ids(database)
     import_features(image_ids, database, features)
     import_matches(image_ids, database, pairs, matches,
