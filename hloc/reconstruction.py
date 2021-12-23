@@ -24,7 +24,7 @@ def create_empty_db(database_path):
     db.close()
 
 
-def import_images(colmap_path, sfm_dir, image_dir, database_path, exclude_folder,
+def import_images(colmap_path, sfm_dir, image_dir, database_path, exclude_folder='',
                   single_camera=False, verbose=False):
     logging.info('Importing images into the database...')
     images = list(image_dir.iterdir())
@@ -127,7 +127,7 @@ def run_reconstruction(colmap_path, sfm_dir, database_path, image_dir,
     return stats
 
 
-def main(sfm_dir, image_dir, pairs, features, matches, exclude_folder,
+def main(sfm_dir, image_dir, pairs, features, matches, exclude_folder='',
          colmap_path='colmap', single_camera=False,
          skip_geometric_verification=False,
          min_match_score=None, min_num_matches=None, verbose=False):
