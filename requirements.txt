@@ -7,10 +7,11 @@ matplotlib
 plotly
 scipy
 h5py
+pycolmap
 icecream
 scikit-learn
 kornia
 pyyaml
 pyquaternion
 ipywidgets
-pycolmap>=0.1.0
+jupyterlab-h5web
