@@ -221,14 +221,14 @@ def main(conf: Dict,
         feature_path = Path(export_dir, conf['output']+'.h5')
     feature_path.parent.mkdir(exist_ok=True, parents=True)
 
-    logging.info(f'Start delete query feature: {feature_path}')
+    logger.info(f'Start delete query feature: {feature_path}')
     if feature_path.exists():
         with h5py.File(str(feature_path), 'a') as fd:
             for key in fd.keys():
                 if not key.startswith('db'):
                     del fd[key]
 
-    logging.info(f'Start skip pairs: {feature_path}')
+    logger.info(f'Start skip pairs: {feature_path}')
     skip_names = set(list_h5_names(feature_path)
                      if feature_path.exists() and not overwrite else ())
     if set(loader.dataset.names).issubset(set(skip_names)):
@@ -242,7 +242,7 @@ def main(conf: Dict,
         model = Model(conf['model']).eval().to(device)
         models[conf['model']['name']] = model
 
-    logging.info('Finished setup model for feature extraction')
+    logger.info('Finished setup model for feature extraction')
 
     for data in tqdm(loader):
         name = data['name'][0]  # remove batch dimension
