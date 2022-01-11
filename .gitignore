@@ -2,5 +2,8 @@ __pycache__
 *.pyc
 *.egg-info
 .ipynb_checkpoints
-outputs
+outputs/
+third_party/netvlad
+datasets/*
+!datasets/sacre_coeur/
 pairs

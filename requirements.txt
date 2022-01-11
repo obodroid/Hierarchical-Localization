@@ -4,6 +4,7 @@ numpy
 opencv-python
 tqdm
 matplotlib
+plotly
 scipy
 h5py
 icecream
@@ -12,4 +13,4 @@ kornia
 pyyaml
 pyquaternion
 ipywidgets
-git+https://github.com/mihaidusmanu/pycolmap@fe5b30345d5de31f9376675c68f19348149426b0
+pycolmap>=0.1.0
