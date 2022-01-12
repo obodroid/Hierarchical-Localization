@@ -6,6 +6,7 @@ from pathlib import Path
 from .utils.read_write_model import (
         read_cameras_binary, read_images_binary, read_model, write_model,
         qvec2rotmat, read_images_text, read_cameras_text)
+
 def create_list_with_intrinsics(model, out, list_file=None, ext='.bin',
                                       image_dir=None):
     print('Creating a list of db images with intrinsics from the colmap model...')
