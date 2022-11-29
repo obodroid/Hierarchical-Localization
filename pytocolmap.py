@@ -1,5 +1,7 @@
 import subprocess
 
+from matplotlib import image
+
 def automatic_reconstructor(workspace_path, image_path):
     subprocess.run("colmap automatic_reconstructor --workspace_path {} --image_path {}".format(workspace_path, image_path))
 def bundle_adjuster(input_path, output_path):
@@ -52,4 +54,30 @@ def model_merger(input_path1, input_path2, output_path):
     subprocess.run("colmap model_merger --input_path1 {} --input_path2 {} --output_path {}".format(input_path1, input_path2, output_path))
 def model_orientation_aligner(image_path, input_path, output_path, method):
     subprocess.run("colmap model_orientation_aligner --image_path {} --input_path {} --output_path {} --method {}".format(image_path, input_path, output_path, method))
-
+def model_splitter(input_path, output_path, split_type):
+    subprocess.run("colmap model_splitter --input_path {} --output_path {} --split_type {}".format(input_path, output_path, split_type))
+def model_transformer(input_path, output_path, transform_path):
+    subprocess.run("colmap model_transformer --input_path {} --output_path {} --transform_path {}".format(input_path, output_path, transform_path))
+def point_triangulator(image_path, input_path, output_path):
+    subprocess.run("colmap point_triangulator --image_path {} --input_path {} --output_path {}".format(image_path, input_path, output_path))
+def poisson_mesher(input_path, output_path):
+    subprocess.run("colmap poisson_mesher --input_path {} --output_path {}".format(input_path, output_path))
+def project_generator(project_path, output_path, quality):
+    subprocess.run("colmap project_generator --project_path {} --output_path {} --quality {}".format(project_path, output_path, quality))
+def rig_bundle_adjuster(input_path, output_path, rig_config_path):
+    subprocess.run("colmap rig_bundle_adjuster --input_path {} --output_path {} --rig_config_path {}".format(input_path, output_path, rig_config_path))
+def sequential_matcher(database_path):
+    subprocess.run("colmap sequential_matcher --database_path {}".format(database_path))
+def spatial_matcher(database_path):
+    subprocess.run("colmap spatial_matcher --database_path {}".format(database_path))
+def stereo_fusion(workspace_path, output_path):
+    subprocess.run("colmap stereo_fusion --workspace_path {} --output_path {}".format(workspace_path, output_path))
+def transitive_matcher(database_path):
+    subprocess.run("colmap transitive_matcher --database_path {}".format(database_path))
+def vocab_tree_builder(database_path, vocab_tree_path):
+    subprocess.run("colmap vocab_tree_builder --database_path {} --vocab_tree_path {}".format(database_path, vocab_tree_path))
+def vocab_tree_matcher(database_path, vocab_tree_path, match_list_path):
+    subprocess.run("colmap vocab_tree_matcher --database_path {} --VocabTreeMatching.vocab_tree_path {} --VocabTreeMatching.match_list_path {}".format(database_path, vocab_tree_path, match_list_path))
+def vocab_tree_retriever(database_path, vocab_tree_path, database_image_list_path, query_image_list_path, output_index_path):
+    subprocess.run("colmap vocab_tree_retriever --database_path {} --vocab_tree_path {} --database_image_list_path {} --query_image_list_path {} --output_index_path {}".format(database_path, vocab_tree_path, database_image_list_path, query_image_list_path, output_index_path))
+    
