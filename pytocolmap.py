@@ -1,7 +1,5 @@
 import subprocess
 
-from matplotlib import image
-
 def automatic_reconstructor(workspace_path, image_path):
     subprocess.run("colmap automatic_reconstructor --workspace_path {} --image_path {}".format(workspace_path, image_path))
 def bundle_adjuster(input_path, output_path):
@@ -80,4 +78,3 @@ def vocab_tree_matcher(database_path, vocab_tree_path, match_list_path):
     subprocess.run("colmap vocab_tree_matcher --database_path {} --VocabTreeMatching.vocab_tree_path {} --VocabTreeMatching.match_list_path {}".format(database_path, vocab_tree_path, match_list_path))
 def vocab_tree_retriever(database_path, vocab_tree_path, database_image_list_path, query_image_list_path, output_index_path):
     subprocess.run("colmap vocab_tree_retriever --database_path {} --vocab_tree_path {} --database_image_list_path {} --query_image_list_path {} --output_index_path {}".format(database_path, vocab_tree_path, database_image_list_path, query_image_list_path, output_index_path))
-    
