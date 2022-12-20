@@ -17,6 +17,9 @@ def parse_names(prefix, names, names_all):
         if not isinstance(prefix, str):
             prefix = tuple(prefix)
         names = [n for n in names_all if n.startswith(prefix)]
+        if len(names) == 0:
+            raise ValueError(
+                f'Could not find any image with the prefix `{prefix}`.')
     elif names is not None:
         if isinstance(names, (str, Path)):
             names = parse_image_lists(names)
@@ -32,12 +35,12 @@ def parse_names(prefix, names, names_all):
 
 def get_descriptors(names, path, name2idx=None, key='global_descriptor'):
     if name2idx is None:
-        with h5py.File(str(path), 'r') as fd:
+        with h5py.File(str(path), 'r', libver='latest') as fd:
             desc = [fd[n][key].__array__() for n in names]
     else:
         desc = []
         for n in names:
-            with h5py.File(str(path[name2idx[n]]), 'r') as fd:
+            with h5py.File(str(path[name2idx[n]]), 'r', libver='latest') as fd:
                 desc.append(fd[n][key].__array__())
     return torch.from_numpy(np.stack(desc, 0)).float()
 
@@ -46,8 +49,9 @@ def pairs_from_score_matrix(scores: torch.Tensor,
                             invalid: np.array,
                             num_select: int,
                             min_score: Optional[float] = None):
-
     assert scores.shape == invalid.shape
+    if isinstance(scores, np.ndarray):
+        scores = torch.from_numpy(scores)
     invalid = torch.from_numpy(invalid).to(scores.device)
     if min_score is not None:
         invalid |= scores < min_score

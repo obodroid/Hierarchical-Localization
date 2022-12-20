@@ -13,7 +13,6 @@ import PIL.Image
 
 from . import extractors, logger
 from .utils.base_model import dynamic_load
-from .utils.tools import map_tensor
 from .utils.parsers import parse_image_lists
 from .utils.io import read_image, list_h5_names
 
@@ -90,31 +89,51 @@ confs = {
     'sift': {
         'output': 'feats-sift',
         'model': {
-            'name': 'sift'
+            'name': 'dog'
         },
         'preprocessing': {
             'grayscale': True,
             'resize_max': 1600,
         },
     },
-    'dir': {
-        'output': 'global-feats-dir',
+    'sosnet': {
+        'output': 'feats-sosnet',
         'model': {
-            'name': 'dir',
+            'name': 'dog',
+            'descriptor': 'sosnet'
         },
         'preprocessing': {
-            'resize_max': 1024,
+            'grayscale': True,
+            'resize_max': 1600,
         },
+    },
+    'disk': {
+        'output': 'feats-disk',
+        'model': {
+            'name': 'disk',
+            'max_keypoints': 5000,
+        },
+        'preprocessing': {
+            'grayscale': False,
+            'resize_max': 1600,
+        },
+    },
+    # Global descriptors
+    'dir': {
+        'output': 'global-feats-dir',
+        'model': {'name': 'dir'},
+        'preprocessing': {'resize_max': 1024},
     },
     'netvlad': {
         'output': 'global-feats-netvlad',
-        'model': {
-            'name': 'netvlad',
-        },
-        'preprocessing': {
-            'resize_max': 1024,
-        },
+        'model': {'name': 'netvlad'},
+        'preprocessing': {'resize_max': 1024},
     },
+    'openibl': {
+        'output': 'global-feats-openibl',
+        'model': {'name': 'openibl'},
+        'preprocessing': {'resize_max': 1024},
+    }
 }
 
 
@@ -191,7 +210,6 @@ class ImageDataset(torch.utils.data.Dataset):
         image = image / 255.
 
         data = {
-            'name': name,
             'image': image,
             'original_size': np.array(size),
         }
@@ -214,9 +232,7 @@ def main(conf: Dict,
     logger.info('Extracting local features with configuration:'
                 f'\n{pprint.pformat(conf)}')
 
-    loader = ImageDataset(image_dir, conf['preprocessing'], image_list)
-    loader = torch.utils.data.DataLoader(loader, num_workers=0)
-
+    dataset = ImageDataset(image_dir, conf['preprocessing'], image_list)
     if feature_path is None:
         feature_path = Path(export_dir, conf['output']+'.h5')
     feature_path.parent.mkdir(exist_ok=True, parents=True)
@@ -231,7 +247,8 @@ def main(conf: Dict,
     logger.info(f'Start skip pairs: {feature_path}')
     skip_names = set(list_h5_names(feature_path)
                      if feature_path.exists() and not overwrite else ())
-    if set(loader.dataset.names).issubset(set(skip_names)):
+    dataset.names = [n for n in dataset.names if n not in skip_names]
+    if len(dataset.names) == 0:
         logger.info('Skipping the extraction.')
         return feature_path
 
@@ -244,12 +261,11 @@ def main(conf: Dict,
 
     logger.info('Finished setup model for feature extraction')
 
-    for data in tqdm(loader):
-        name = data['name'][0]  # remove batch dimension
-        if name in skip_names:
-            continue
-
-        pred = model(map_tensor(data, lambda x: x.to(device)))
+    loader = torch.utils.data.DataLoader(
+        dataset, num_workers=1, shuffle=False, pin_memory=True)
+    for idx, data in enumerate(tqdm(loader)):
+        name = dataset.names[idx]
+        pred = model({'image': data['image'].to(device, non_blocking=True)})
         pred = {k: v[0].cpu().numpy() for k, v in pred.items()}
 
         pred['image_size'] = original_size = data['original_size'][0].numpy()
@@ -257,6 +273,10 @@ def main(conf: Dict,
             size = np.array(data['image'].shape[-2:][::-1])
             scales = (original_size / size).astype(np.float32)
             pred['keypoints'] = (pred['keypoints'] + .5) * scales[None] - .5
+            if 'scales' in pred:
+                pred['scales'] *= scales.mean()
+            # add keypoint uncertainties scaled to the original resolution
+            uncertainty = getattr(model, 'detection_noise', 1) * scales.mean()
 
         if as_half:
             for k in pred:
@@ -264,13 +284,15 @@ def main(conf: Dict,
                 if (dt == np.float32) and (dt != np.float16):
                     pred[k] = pred[k].astype(np.float16)
 
-        with h5py.File(str(feature_path), 'a') as fd:
+        with h5py.File(str(feature_path), 'a', libver='latest') as fd:
             try:
                 if name in fd:
                     del fd[name]
                 grp = fd.create_group(name)
                 for k, v in pred.items():
                     grp.create_dataset(k, data=v)
+                if 'keypoints' in pred:
+                    grp['keypoints'].attrs['uncertainty'] = uncertainty
             except OSError as error:
                 if 'No space left on device' in error.args[0]:
                     logger.error(
