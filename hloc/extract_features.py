@@ -10,6 +10,8 @@ from tqdm import tqdm
 import pprint
 import collections.abc as collections
 import PIL.Image
+import os
+import torch
 
 from . import extractors, logger
 from .utils.base_model import dynamic_load
@@ -210,7 +212,8 @@ def main(conf: Dict,
          as_half: bool = True,
          image_list: Optional[Union[Path, List[str]]] = None,
          feature_path: Optional[Path] = None,
-         overwrite: bool = False) -> Path:
+         overwrite: bool = False,
+        ) -> Path:
     logger.info('Extracting local features with configuration:'
                 f'\n{pprint.pformat(conf)}')
 
@@ -241,7 +244,16 @@ def main(conf: Dict,
         Model = dynamic_load(extractors, conf['model']['name'])
         model = Model(conf['model']).eval().to(device)
         models[conf['model']['name']] = model
-
+    if 'netvlad' in conf['model']['name'] and export_dir:
+        # custom_weight = export_dir / "netvlad_weight.pt"
+        custom_weight = export_dir.parent / 'state_dict_360000.pt'
+        if os.path.exists(custom_weight):
+            # print(list(model.parameters())[0])
+            model.load_state_dict(torch.load(str(custom_weight))["weight"])
+            # print(list(model.parameters())[0])
+            logger.info('use custom weight for netvlad...')
+        else:
+            logger.info('use default weight for netvlad...')
     logger.info('Finished setup model for feature extraction')
 
     for data in tqdm(loader):

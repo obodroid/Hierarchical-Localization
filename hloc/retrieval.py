@@ -12,6 +12,7 @@ from tqdm import tqdm
 import pprint
 from .utils.image_dataset import ImageDataset
 from .utils.tools import map_tensor
+import os
 
 class Retriever(torch.nn.Module):
     def __init__(self):
@@ -46,6 +47,13 @@ def main(conf, image_dir, export_dir, output_name, as_half=False):
     logging.info('Extracting global descriptors with configuration:'
                  f'\n{pprint.pformat(conf)}')
 
+    custom_weight = export_dir / "netvlad_weight.pt"
+    if os.path.exists(custom_weight):
+        model.load_state_dict(torch.load(str(custom_weight))["weight"])
+        logging.info('use custom weight for netvlad...')
+    else:
+        logging.info('use default weight for netvlad...')
+
     loader = ImageDataset(image_dir, conf['preprocessing'])
     loader = torch.utils.data.DataLoader(loader, num_workers=0)
 
@@ -63,6 +71,7 @@ def main(conf, image_dir, export_dir, output_name, as_half=False):
             continue
 
         pred = model(map_tensor(data, lambda x: x.to(device)))
+        
         pred = {k: v[0].cpu().numpy() for k, v in pred.items()}
 
         if as_half:
