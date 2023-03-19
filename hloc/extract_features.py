@@ -29,7 +29,7 @@ line using their name. Each is a dictionary with the following entries:
 '''
 confs = {
     'superpoint_aachen': {
-        'output': 'feats-superpoint-n4096-r1024',
+        'output': 'features',
         'model': {
             'name': 'superpoint',
             'nms_radius': 3,
@@ -109,7 +109,7 @@ confs = {
         },
     },
     'netvlad': {
-        'output': 'global-feats-netvlad',
+        'output': 'glob-feats-netvlad',
         'model': {
             'name': 'netvlad',
         },
@@ -245,15 +245,18 @@ def main(conf: Dict,
         model = Model(conf['model']).eval().to(device)
         models[conf['model']['name']] = model
     if 'netvlad' in conf['model']['name'] and export_dir:
-        # custom_weight = export_dir / "netvlad_weight.pt"
-        custom_weight = export_dir.parent / 'state_dict_360000.pt'
+        custom_weight = export_dir / "netvlad_weight2.pt"
+        # custom_weight = export_dir.parent.parent / 'state_dict_360000.pt'
+        # custom_weight = export_dir / 'weight'
         if os.path.exists(custom_weight):
             # print(list(model.parameters())[0])
             model.load_state_dict(torch.load(str(custom_weight))["weight"])
             # print(list(model.parameters())[0])
             logger.info('use custom weight for netvlad...')
+            raise Exception("use are using custom weight of netvlad")
         else:
             logger.info('use default weight for netvlad...')
+            # raise Exception("use are using default weight of netvlad")
     logger.info('Finished setup model for feature extraction')
 
     for data in tqdm(loader):

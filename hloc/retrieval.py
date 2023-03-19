@@ -11,8 +11,10 @@ import numpy as np
 from tqdm import tqdm
 import pprint
 from .utils.image_dataset import ImageDataset
+from .utils.base_model import dynamic_load
 from .utils.tools import map_tensor
 import os
+from . import extractors, logger
 
 class Retriever(torch.nn.Module):
     def __init__(self):
@@ -40,19 +42,26 @@ confs = {
 }
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-model = Retriever().eval().to(device)
+# model = Retriever().eval().to(device)
+Model = dynamic_load(extractors, "netvlad")
+model = Model({"name":"netvlad"}).eval().to(device)
 
 @torch.no_grad()
 def main(conf, image_dir, export_dir, output_name, as_half=False):
     logging.info('Extracting global descriptors with configuration:'
                  f'\n{pprint.pformat(conf)}')
 
-    custom_weight = export_dir / "netvlad_weight.pt"
+    custom_weight = export_dir.parent.parent / "state_dict_360000.pt"
+    # custom_weight = export_dir / "netvlad_weight2.pt"
+
+    logging.info("Looking for", str(custom_weight))
     if os.path.exists(custom_weight):
+        raise Exception("use are using custom weight of netvlad")
         model.load_state_dict(torch.load(str(custom_weight))["weight"])
         logging.info('use custom weight for netvlad...')
     else:
         logging.info('use default weight for netvlad...')
+        # raise Exception("use are using default weight of netvlad")
 
     loader = ImageDataset(image_dir, conf['preprocessing'])
     loader = torch.utils.data.DataLoader(loader, num_workers=0)
