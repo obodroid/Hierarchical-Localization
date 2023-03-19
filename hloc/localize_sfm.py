@@ -162,6 +162,8 @@ def main(reference_sfm: Union[Path, pycolmap.Reconstruction],
         'retrieval': retrieval,
         'loc': {},
     }
+
+    rets_, logs_ = [],[]
     logger.info('Starting localization...')
     for qname, qcam in tqdm(queries):
         if qname not in retrieval_dict:
@@ -207,6 +209,8 @@ def main(reference_sfm: Union[Path, pycolmap.Reconstruction],
                 poses[qname] = (closest.qvec, closest.tvec)
             log['covisibility_clustering'] = covisibility_clustering
             logs['loc'][qname] = log
+        rets_.append(ret)
+        logs_.append(log)
 
     logger.info(f'Localized {len(poses)} / {len(queries)} images.')
     logger.info(f'Writing poses to {results}...')
@@ -225,6 +229,7 @@ def main(reference_sfm: Union[Path, pycolmap.Reconstruction],
     with open(logs_path, 'wb') as f:
         pickle.dump(logs, f)
     logger.info('Done!')
+    return rets_, logs_
 
 
 if __name__ == '__main__':
